@@ -12,3 +12,7 @@ jwt = JWTManager()
 socketio = SocketIO()
 
 
+
+
+
+

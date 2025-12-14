@@ -56,3 +56,7 @@ def truncate_text(text, max_length=100, suffix='...'):
     return text[:max_length - len(suffix)] + suffix
 
 
+
+
+
+

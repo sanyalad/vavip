@@ -4,9 +4,16 @@ Orders API
 import uuid
 from datetime import datetime
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import (
+    jwt_required,
+    get_jwt_identity,
+    verify_jwt_in_request,
+    create_access_token,
+    create_refresh_token,
+)
 from ..extensions import db, socketio
 from ..models import Order, OrderItem, Product, User
+from ..utils.validators import normalize_phone
 
 bp = Blueprint('orders', __name__)
 
@@ -51,11 +58,56 @@ def get_order(order_id):
 
 
 @bp.route('/', methods=['POST'])
-@jwt_required()
 def create_order():
     """Create a new order."""
+    # Optional auth: if JWT provided, create an order for current user.
+    # If not authenticated, we auto-create an account by phone (as requested by frontend UX).
+    verify_jwt_in_request(optional=True)
     user_id = get_jwt_identity()
     data = request.get_json()
+
+    auth_payload = None
+    auto_account_created = False
+
+    if not user_id:
+        raw_phone = (data or {}).get('customer_phone') if data else None
+        if not raw_phone:
+            return jsonify({'error': 'customer_phone is required', 'code': 'PHONE_REQUIRED'}), 400
+
+        phone = normalize_phone(raw_phone)
+        if len(phone) < 10:
+            return jsonify({'error': 'Invalid phone', 'code': 'PHONE_INVALID'}), 400
+
+        existing = User.query.filter_by(phone=phone).first()
+        if existing:
+            # Security: do not auto-login an existing account without verification.
+            return jsonify({'error': 'Phone already registered', 'code': 'PHONE_EXISTS'}), 409
+
+        # Create a new user with a generated password.
+        # We do not have SMS integration yet; frontend will display "password will be sent" and we return JWTs
+        # so the user can continue seamlessly. SMS/OTP will be added next.
+        email = f"auto_{phone}_{uuid.uuid4().hex[:6]}@auto.vavip"
+        password = uuid.uuid4().hex[:10]
+
+        user = User(
+            email=email,
+            first_name=(data or {}).get('customer_name'),
+            phone=phone,
+        )
+        user.set_password(password)
+        db.session.add(user)
+        db.session.flush()
+
+        user_id = user.id
+        auto_account_created = True
+
+        access_token = create_access_token(identity=user.id)
+        refresh_token = create_refresh_token(identity=user.id)
+        auth_payload = {
+            'user': user.to_dict(),
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
     
     # Validate items
     items = data.get('items', [])
@@ -133,7 +185,14 @@ def create_order():
     socketio.emit('order_created', order.to_dict(), room=f'user_{user_id}')
     socketio.emit('new_order', order.to_dict(), room='admins')
     
-    return jsonify(order.to_dict()), 201
+    payload = {
+        'order': order.to_dict(),
+        'auto_account_created': auto_account_created
+    }
+    if auth_payload:
+        payload.update(auth_payload)
+
+    return jsonify(payload), 201
 
 
 @bp.route('/<int:order_id>/status', methods=['PUT'])
@@ -303,5 +362,9 @@ def repeat_order(order_id):
     db.session.commit()
     
     return jsonify(new_order.to_dict()), 201
+
+
+
+
 
 

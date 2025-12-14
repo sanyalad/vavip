@@ -4,6 +4,13 @@ Validation utilities
 import re
 
 
+def normalize_phone(phone: str) -> str:
+    """Normalize phone to digits-only string for storage/comparison."""
+    if not phone:
+        return ''
+    return re.sub(r'\D', '', str(phone))
+
+
 def validate_email(email):
     """Validate email format."""
     if not email:
@@ -46,5 +53,9 @@ def validate_required_fields(data, fields):
         if not data.get(field):
             missing.append(field)
     return missing
+
+
+
+
 
 

@@ -15,7 +15,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    phone = db.Column(db.String(20))
+    phone = db.Column(db.String(20), unique=True, index=True)
     role = db.Column(db.String(20), default='customer')  # customer, admin, manager
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -88,5 +88,9 @@ class Favorite(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (db.UniqueConstraint('user_id', 'product_id'),)
+
+
+
+
 
 

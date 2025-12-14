@@ -243,3 +243,7 @@ def get_favorites():
     return jsonify(products)
 
 
+
+
+
+

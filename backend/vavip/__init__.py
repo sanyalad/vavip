@@ -8,8 +8,16 @@ from .config import Config
 from .extensions import db, migrate, jwt, socketio
 
 
-def create_app(config_class=Config):
+def create_app(config_class=None):
     """Application factory pattern."""
+    import os
+    from .config import config
+    
+    # Auto-detect config from FLASK_ENV
+    if config_class is None:
+        env = os.environ.get('FLASK_ENV', 'development')
+        config_class = config.get(env, config['default'])
+    
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -18,7 +26,8 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     jwt.init_app(app)
     CORS(app, origins=app.config.get('CORS_ORIGINS', '*').split(','))
-    socketio.init_app(app, cors_allowed_origins="*")
+    # Align Socket.IO CORS with regular CORS configuration (safer for production)
+    socketio.init_app(app, cors_allowed_origins=app.config.get('CORS_ORIGINS', '*').split(','))
 
     # Register blueprints
     from .api import auth_bp, products_bp, orders_bp, contacts_bp, feedback_bp, dashboard_bp
@@ -39,5 +48,9 @@ def create_app(config_class=Config):
         return {'status': 'ok', 'message': 'Vavip API is running'}
 
     return app
+
+
+
+
 
 
