@@ -44,3 +44,5 @@ def downgrade():
     op.drop_table('phone_otps')
 
 
+
+
