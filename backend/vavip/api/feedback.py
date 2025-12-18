@@ -1,10 +1,14 @@
 """
 Feedback API
 """
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, request
 from ..extensions import db, socketio
-from ..models import Feedback, User
+from ..models import Feedback
+from ..utils.errors import NotFoundError, ForbiddenError
+from ..utils.response_utils import success_response, paginated_response
+from ..utils.decorators import manager_required, validate_pagination
+from ..utils.schema_validator import validate_request
+from ..schemas.feedback_schemas import CreateFeedbackSchema
 
 bp = Blueprint('feedback', __name__)
 
@@ -12,21 +16,12 @@ bp = Blueprint('feedback', __name__)
 @bp.route('/', methods=['POST'])
 def create_feedback():
     """Submit feedback form (public endpoint)."""
-    data = request.get_json()
+    data = request.get_json() or {}
     
-    required = ['name', 'email', 'message']
-    for field in required:
-        if not data.get(field):
-            return jsonify({'error': f'{field} is required'}), 400
+    # Validate with schema
+    validated_data = validate_request(CreateFeedbackSchema, data)
     
-    feedback = Feedback(
-        name=data['name'],
-        email=data['email'],
-        phone=data.get('phone'),
-        subject=data.get('subject'),
-        message=data['message'],
-        source_page=data.get('source_page')
-    )
+    feedback = Feedback(**validated_data)
     
     db.session.add(feedback)
     db.session.commit()
@@ -36,30 +31,20 @@ def create_feedback():
         'id': feedback.id,
         'name': feedback.name,
         'subject': feedback.subject,
-        'created_at': feedback.created_at.isoformat()
+        'created_at': feedback.created_at.isoformat() if feedback.created_at else None
     }, room='admins')
     
-    return jsonify({
-        'message': 'Thank you for your feedback!',
+    return success_response({
         'id': feedback.id
-    }), 201
+    }, status_code=201, message='Thank you for your feedback!')
 
 
 # Admin endpoints
 @bp.route('/', methods=['GET'])
-@jwt_required()
-def get_feedback_list():
-    """Get all feedback (admin only)."""
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    
-    if not user or user.role not in ['admin', 'manager']:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    # Pagination
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    
+@manager_required
+@validate_pagination(max_per_page=100)
+def get_feedback_list(page, per_page):
+    """Get all feedback (admin/manager only)."""
     # Filters
     status = request.args.get('status')
     is_read = request.args.get('is_read', type=bool)
@@ -73,48 +58,50 @@ def get_feedback_list():
         query = query.filter_by(is_read=is_read)
     
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    unread_count = Feedback.query.filter_by(is_read=False).count()
     
-    return jsonify({
-        'feedback': [f.to_dict() for f in pagination.items],
+    feedback_list = [f.to_dict() for f in pagination.items]
+    
+    # Return with unread_count in response
+    response = {
+        'feedback': feedback_list,
         'total': pagination.total,
         'pages': pagination.pages,
         'current_page': page,
-        'unread_count': Feedback.query.filter_by(is_read=False).count()
-    })
+        'per_page': per_page,
+        'has_next': pagination.has_next,
+        'has_prev': pagination.has_prev,
+        'unread_count': unread_count
+    }
+    
+    return success_response(response)
 
 
 @bp.route('/<int:feedback_id>', methods=['GET'])
-@jwt_required()
+@manager_required
 def get_feedback(feedback_id):
-    """Get feedback by ID (admin only)."""
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    
-    if not user or user.role not in ['admin', 'manager']:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    feedback = Feedback.query.get_or_404(feedback_id)
+    """Get feedback by ID (admin/manager only)."""
+    feedback = Feedback.query.get(feedback_id)
+    if not feedback:
+        raise NotFoundError('Feedback not found', 'FEEDBACK_NOT_FOUND')
     
     # Mark as read
     if not feedback.is_read:
         feedback.is_read = True
         db.session.commit()
     
-    return jsonify(feedback.to_dict())
+    return success_response(feedback.to_dict())
 
 
 @bp.route('/<int:feedback_id>', methods=['PUT'])
-@jwt_required()
+@manager_required
 def update_feedback(feedback_id):
-    """Update feedback status (admin only)."""
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    """Update feedback status (admin/manager only)."""
+    feedback = Feedback.query.get(feedback_id)
+    if not feedback:
+        raise NotFoundError('Feedback not found', 'FEEDBACK_NOT_FOUND')
     
-    if not user or user.role not in ['admin', 'manager']:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    feedback = Feedback.query.get_or_404(feedback_id)
-    data = request.get_json()
+    data = request.get_json() or {}
     
     if 'status' in data:
         feedback.status = data['status']
@@ -127,24 +114,22 @@ def update_feedback(feedback_id):
     
     db.session.commit()
     
-    return jsonify(feedback.to_dict())
+    return success_response(feedback.to_dict())
 
 
 @bp.route('/<int:feedback_id>', methods=['DELETE'])
-@jwt_required()
+@manager_required
 def delete_feedback(feedback_id):
-    """Delete feedback (admin only)."""
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    """Delete feedback (admin/manager only)."""
+    feedback = Feedback.query.get(feedback_id)
+    if not feedback:
+        raise NotFoundError('Feedback not found', 'FEEDBACK_NOT_FOUND')
     
-    if not user or user.role not in ['admin', 'manager']:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    feedback = Feedback.query.get_or_404(feedback_id)
     db.session.delete(feedback)
     db.session.commit()
     
-    return jsonify({'message': 'Feedback deleted successfully'})
+    return success_response(message='Feedback deleted successfully')
+
 
 
 

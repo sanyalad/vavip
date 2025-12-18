@@ -27,6 +27,11 @@ class OrderService:
                 continue
             
             quantity = item.get('quantity', 1)
+            
+            # Check stock availability
+            if product.stock_quantity is not None and quantity > product.stock_quantity:
+                raise ValueError(f'Insufficient stock for product {product.name}. Available: {product.stock_quantity}, requested: {quantity}')
+            
             item_total = float(product.price) * quantity
             subtotal += item_total
             
@@ -141,6 +146,7 @@ class OrderService:
     def get_user_orders(user_id):
         """Get all orders for a user."""
         return Order.query.filter_by(user_id=user_id).order_by(Order.created_at.desc()).all()
+
 
 
 

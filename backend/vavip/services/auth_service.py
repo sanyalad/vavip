@@ -56,8 +56,18 @@ class AuthService:
         if not user:
             return None
         
+        # Handle email update separately (needs validation)
+        if 'email' in kwargs and kwargs['email']:
+            email = kwargs.pop('email')
+            if email != user.email:
+                # Check if email is already taken
+                if User.query.filter_by(email=email).first():
+                    raise ValueError('Email already registered')
+                user.email = email
+        
+        # Update other fields
         for key, value in kwargs.items():
-            if hasattr(user, key) and key not in ['id', 'email', 'password_hash', 'role']:
+            if value is not None and hasattr(user, key) and key not in ['id', 'password_hash', 'role']:
                 setattr(user, key, value)
         
         db.session.commit()
@@ -76,6 +86,7 @@ class AuthService:
         user.set_password(new_password)
         db.session.commit()
         return True
+
 
 
 
