@@ -1,18 +1,24 @@
 # Инструкции по сборке Docker
 
-## Быстрая сборка с BuildKit (рекомендуется)
+## Стандартная сборка (работает всегда)
 
-BuildKit значительно ускоряет сборку благодаря кэшированию зависимостей.
+Dockerfile'ы оптимизированы для использования кэширования слоёв Docker:
+
+```bash
+docker-compose build --parallel
+```
+
+Зависимости кэшируются как отдельные слои, поэтому повторные сборки будут быстрыми, если `requirements.txt` или `package.json` не изменились.
+
+## Сборка с BuildKit (опционально, дополнительная оптимизация)
+
+BuildKit может дополнительно ускорить сборку, но не обязателен.
 
 ### Linux/Mac:
 
 ```bash
-# Включить BuildKit и собрать
+# Включить BuildKit и собрать (опционально)
 DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose build --parallel
-
-# Или добавить в ~/.bashrc для постоянного использования:
-export DOCKER_BUILDKIT=1
-export COMPOSE_DOCKER_CLI_BUILD=1
 ```
 
 ### Windows (PowerShell):

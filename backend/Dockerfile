@@ -9,10 +9,10 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies with cache mount (faster rebuilds)
+# Install Python dependencies
+# Layer is cached unless requirements.txt changes
 COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --prefer-binary -r requirements.txt
+RUN pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 # Copy source (this layer invalidates only when code changes)
 COPY . .
