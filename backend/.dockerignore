@@ -27,4 +27,15 @@ build/
 *.swp
 *.swo
 *~
+images/
+videos/
+frontend/
+*.mp4
+*.webm
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+!logo.png
 

@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 # Install Python dependencies with cache mount (faster rebuilds)
 COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 # Copy source (this layer invalidates only when code changes)
 COPY . .
