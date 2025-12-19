@@ -1,10 +1,17 @@
 version: '3.8'
 
+# Use BuildKit for faster builds with cache mounts
+x-buildkit: &buildkit
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
 services:
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     ports:
       - "80:80"
     depends_on:
@@ -15,6 +22,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     ports:
       - "5000:5000"
     env_file:
