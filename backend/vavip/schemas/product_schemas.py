@@ -35,3 +35,5 @@ class UpdateProductSchema(Schema):
     is_active = fields.Bool(allow_none=True)
     is_featured = fields.Bool(allow_none=True)
 
+
+

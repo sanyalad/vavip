@@ -13,3 +13,5 @@ class CreateFeedbackSchema(Schema):
     message = fields.Str(required=True, validate=validate.Length(min=1), error_messages={'required': 'Message is required'})
     source_page = fields.Str(allow_none=True, validate=validate.Length(max=100))
 
+
+

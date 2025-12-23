@@ -92,3 +92,5 @@ def validate_pagination(max_per_page: int = 100):
         return decorated
     return decorator
 
+
+

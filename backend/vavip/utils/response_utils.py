@@ -3,8 +3,15 @@ Utility functions for standardizing API responses.
 Ensures compatibility with frontend expectations.
 """
 from flask import jsonify
-from typing import Any, Optional, Dict, List
-from sqlalchemy.pagination import Pagination
+from typing import Any, Optional, List, TYPE_CHECKING
+
+# NOTE:
+# Pagination is provided by Flask-SQLAlchemy (not SQLAlchemy core).
+# Importing it only for typing avoids crashing app startup if pagination isn't used.
+if TYPE_CHECKING:
+    from flask_sqlalchemy.pagination import Pagination
+else:
+    Pagination = Any  # type: ignore[misc,assignment]
 
 
 def success_response(data: Any = None, status_code: int = 200, message: Optional[str] = None) -> tuple:
@@ -70,4 +77,6 @@ def paginated_response(items: List[Any], pagination: Pagination,
         'has_next': pagination.has_next,
         'has_prev': pagination.has_prev
     }), 200
+
+
 

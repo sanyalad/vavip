@@ -184,3 +184,5 @@ def test_get_categories(client, category):
     assert isinstance(data, list)
     assert len(data) > 0
 
+
+
