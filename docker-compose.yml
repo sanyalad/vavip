@@ -13,6 +13,7 @@ services:
       dockerfile: Dockerfile
       args:
         BUILDKIT_INLINE_CACHE: 1
+    container_name: vavip-frontend-dev
     ports:
       - "5173:5173"
     volumes:
@@ -21,7 +22,15 @@ services:
     environment:
       - VITE_API_URL=http://localhost:5000/api
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+    networks:
+      - vavip-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Backend (Flask)
   backend:
@@ -30,6 +39,7 @@ services:
       dockerfile: Dockerfile
       args:
         BUILDKIT_INLINE_CACHE: 1
+    container_name: vavip-backend-dev
     ports:
       - "5000:5000"
     volumes:
@@ -43,12 +53,22 @@ services:
       - JWT_SECRET_KEY=jwt-dev-secret-change-in-production
       - CORS_ORIGINS=http://localhost:5173
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - vavip-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
+    container_name: vavip-db-dev
     ports:
       - "5432:5432"
     environment:
@@ -57,14 +77,45 @@ services:
       - POSTGRES_DB=vavip
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vavip"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - vavip-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Redis
   redis:
     image: redis:7-alpine
+    container_name: vavip-redis-dev
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - vavip-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  vavip-network:
+    driver: bridge
 
 volumes:
   postgres_data:

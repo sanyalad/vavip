@@ -12,11 +12,20 @@ services:
       dockerfile: Dockerfile.prod
       args:
         BUILDKIT_INLINE_CACHE: 1
+    container_name: vavip-frontend-prod
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - vavip-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
 
   backend:
     build:
@@ -24,48 +33,86 @@ services:
       dockerfile: Dockerfile.prod
       args:
         BUILDKIT_INLINE_CACHE: 1
+    container_name: vavip-backend-prod
     ports:
       - "5000:5000"
     env_file:
       - ./backend/.env
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - vavip-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
 
   db:
     image: postgres:15-alpine
+    container_name: vavip-db-prod
     environment:
       - POSTGRES_USER=vavip
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-change-me-in-production}
       - POSTGRES_DB=vavip
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - vavip-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vavip"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
 
   redis:
     image: redis:7-alpine
+    container_name: vavip-redis-prod
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     restart: unless-stopped
+    networks:
+      - vavip-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+networks:
+  vavip-network:
+    driver: bridge
+    ipam:
+      driver: default
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
 
