@@ -56,6 +56,18 @@ temp/
 *.bak
 *.backup
 
+# Planning/Reference files (не пушить в git)
+для_плана/
+*.pdf
+*.html
+
+# Debug logs
+.cursor/debug.log
+.cursor/
+
+# CI/CD workflows (требуют специальных прав)
+.github/workflows/
+
 
 
 
