@@ -1,0 +1,639 @@
+сейчас ты подключен к моему гиту и должен
+видеть ветку маин2 в проекте мосунер/вавип
+Отлично! Я подключен к вашему GitHub аккаунту (sanyalad) и вижу репозиторий
+mosunerr/vavip. В нём присутствуют две ветки:
+1. main (SHA: 6af880cf9aac953176c3dfe1119be7c28179cc21)
+2. main2 (SHA: 47af8832b20acb797693867c350370f7fc223eb7)
+Ветка main2 действительно существует и доступна.
+Чем могу помочь с этим проектом? Могу:
+Просмотреть файлы в ветке main2
+Проанализировать последние коммиты
+Помочь с разработкой UI/UX анимаций перелистывания
+Внести изменения или создать pull request
+Проверить код или предложить улучшения
+Что вам нужно сделать?
+
+да, именно анимация перелистывания мне
+нужна
+сейчас она дико лагает, выглядит не премиально, вообще не плавная, куча артефактов но
+концепт типа правильный
+посмотри код и предложи гипотезы и план улучшений этой анимации ОСОБЕННО НА
+ТАЧПАДЕ - она должна быть интерактивной, чтобы можно было играться с ней, чтобы это
+было приятно
+Супер, контекст у меня есть — и по коду, и по логам из файла VAVIP Project Development
+Log, и по ветке main2. Ниже — именно гипотезы и план, без воды.
+
+1. Где сейчас живёт логика жеста
+Из логов видно:
+Хук useTrackpadGesture в frontendsrc/hooks/useTrackpadGesture.ts
+В нём:
+
+накопление deltaY колесика
+SWIPE_THRESHOLD
+gestureProgress (0–1), который:
+
+показывает прогресс-бар (motion.div fixed снизу)
+даёт лёгкий параллакс (useTransform(gestureProgress, 0, 1, 0, -50) в
+VideoSection)
+Рядом обсуждались:
+TRACKPAD_START_DELTA_PX, TRACKPAD_STARTACCUMWINDOWMS
+TRACKPAD_GESTURE_IDLE_FINALIZE_MS
+SCROLL_DEBOUNCE
+
+wheelRange, velocity-based finalize и т.п.
+То есть сейчас это гибрид:
+слушается wheel
+на основе суммы deltaY → прогресс
+потом по тайм-аутам/дебаунсам пытается «догадаться», что жест завершён.
+На трекпаде это почти всегда больно: очень частые маленькие дельты, куча событий,
+пересчёты и финализации.
+
+2. Главные гипотезы, почему сейчас лагает и с артефактами
+2.1. Чрезмерная реакция на каждый wheel-event
+Симптомы: дёргания, «ступеньки», артефакты параллакса.
+Гипотеза:
+Внутри handleWheel скорее всего:
+сразу меняется gestureProgress
+возможно, меняется ещё и состояние React
+и это всё на каждый wheel event.
+На тачпаде таких событий десятки в секунду, каждый вызывает:
+пересчёт хуков
+пересчёт layout
+перерисовку Framer Motion-перформеров.
+Что делать:
+Ввести двухступенчатую модель:
+1. low-level wheel → обновляет только низкоуровневые ref (delta, velocity, time).
+
+2. визуальный прогресс → обновляется через один requestAnimationFrame tick
+(batched).
+То есть handleWheel:
+только пишет в lastDeltaRef.current / lastEventTimeRef.current
+ставит флаг needsPublishRef.current = true
+а rafLoop (~60fps) читает текущие значения и обновляет один useState.
+
+2.2. Слишком тяжёлые финализации (слайд / перелистывание) после жеста
+Симптом:
+после того как отпускаешь трекпад, анимация «догоняет» или «прыгает», чувствуется
+лаг.
+Гипотеза:
+finalizeGesture (переключение страницы, перелистывание) делает:
+
+смену слайда
+Framer Motion-анимацию на большие расстояния (x: ±1000, scale, opacity).
+плюс ещё возможны:
+рефлоу-триггеры через width/left/top (в логах есть обсуждения left vs transform).
+Что делать:
+1. Короткий и предсказуемый финализирующий твёрдый «snap»:
+вместо 200–250ms на всю страницу → 140–180ms с мягкой кривой
+(easings.smooth).
+не смешивать много свойств:
+только transform: translateX/translateY + opacity.
+2. Никаких left/top/width при смене слайда — только GPU:
+transform, opacity
+will-change: transform, opacity на активных слоях.
+
+2.3. Плохая фильтрация трекпада vs мышиного скролла
+В логах у тебя уже есть идея isLikelyTrackpad (tiny deltas, быстрые события).
+Гипотеза:
+Алгоритм определения трекпада может:
+или слишком часто ошибаться
+или постоянно пересчитываться
+
+из-за этого gesture-логика иногда активируется на обычной мыши, где поведение и
+ожидания другие.
+План:
+Фиксировать тип ввода на время сессии/страницы:
+первые несколько wheel-событий → классификация.
+дальше не переопределять каждое событие, только обновлять статистику в фоне.
+Реакцию на мышь сделать более грубой (порог, отсутствует интерактивное
+«перетягивание»), а основную интерактивность оставить на трекпад.
+
+2.4. Несогласованность velocity/threshold → «случайное» перелистывание
+По логам:
+const velocity = absDeltaClamped / deltaTime
+if (velocity > TRACKPAD_MIN_VELOCITY_TO_CONTINUE) {
+gestureDirectionRef.current = ...
+stopFinalizeTimer()
+scheduleFinalize(TRACKPAD_GESTURE_IDLE_FINALIZE_MS)
+}
+
+и ещё:
+if (now - lastFinalizeTimeRef.current < 100) return
+
+Это всё очень чувствительно к крошечным шайбам трекпада.
+Гипотеза:
+пороги скорости/времени подобраны так, что:
+иногда «переключает страницу», когда пользователь хотел чуть скролльнуть
+иногда наоборот — долго «держит» жест, создавая чувство инерционного лага.
+Что делать:
+1. Упростить модель:
+две фазы:
+«активный жест» (идёт скролл)
+«idle» (нет скролла > X ms → финализируем).
+2. Скорость использовать только как модификатор длительности финального snap’а:
+сильный флик → shorter snap (120–150ms, больше overshoot)
+медленный drag → longer snap (180–220ms, менее агрессивный).
+
+2.5. Нехватка визуального фидбэка «перетаскиваю страницу»
+Сейчас есть:
+полоска прогресса снизу
+маленький параллакс.
+Но для premium feel на тачпаде нужно, чтобы ощущалось как dragging страницы под
+пальцем.
+Идея:
+вместо «только прогресс-бара»:
+активный жест должен постоянно маппить накопленный delta →
+translateX/translateY главного слоя.
+пока жест активен — нет «автоанимации», это чистый follow finger.
+когда отпустили — один короткий snap-to-next/previous.
+Это:
+максимально предсказуемо
+мозг считывает это как «интерактивный, физичный» UI.
+
+3. Конкретный план улучшений (по шагам)
+Шаг 1: Перестроить хук useTrackpadGesture на RAF-паблишинг
+Цель: убрать лаги и дергания от частых wheel-событий.
+1. Внутри useTrackpadGesture:
+заменить setGestureProgress из handleWheel на запись в refs:
+const lastDeltaRef = useRef(0)
+const lastTimeRef = useRef(performance.now())
+const progressRef = useRef(0)
+const [gestureProgress, setGestureProgress] = useState(0)
+const handleWheel = (e: WheelEvent) => {
+const now = performance.now()
+const delta = e.deltaY
+const dt = now - lastTimeRef.current
+// апдейт внутренних рефов
+lastDeltaRef.current = delta
+lastTimeRef.current = now
+// обновление progressRef на основе накопления/threshold
+// НО без setState!
+progressRef.current = clamp( /* ... */ )
+
+needsPublishRef.current = true
+}
+
+и создать один useEffect, который крутит requestAnimationFrame:
+useEffect(() => {
+let frameId: number
+const loop = () => {
+if (needsPublishRef.current) {
+needsPublishRef.current = false
+setGestureProgress(progressRef.current)
+}
+frameId = requestAnimationFrame(loop)
+}
+frameId = requestAnimationFrame(loop)
+return () => cancelAnimationFrame(frameId)
+}, [])
+
+2. На тачпаде это даст:
+ровный 60fps апдейт прогресса
+меньше React-рендеров
+меньше артефактов у Framer Motion-компонентов.
+
+Шаг 2: Отвязать логику жеста от layout-изменений, оставить только
+transforms
+Проверить компоненты, которые реагируют на gestureProgress:
+прогресс-бар (scaleX, width)
+параллакс (x/y).
+Правило:
+Никаких width, left, top в стилях, основанных на gestureProgress.
+Только transform: translateX/translateY/scale и opacity.
+Если ты где-то привязываешь gestureProgress к width/height блока (типа page-reveal),
+заменить на:
+фиксированную оболочку + transform внутреннего контента.
+
+Шаг 3: Упростить и стабилизировать финализацию жеста
+1. Ввести простую схему:
+const IDLE_FINALIZE_MS = 60 // 60–80мс
+let idleTimer: number | null = null
+
+const onWheel = (e: WheelEvent) => {
+// обновляем refs как выше
+if (idleTimer) clearTimeout(idleTimer)
+idleTimer = window.setTimeout(() => {
+finalizeGesture()
+}, IDLE_FINALIZE_MS)
+}
+
+2. В finalizeGesture:
+читаем progressRef.current и lastDeltaRef.current:
+если прогресс < 0.4 → откатываем (snap back)
+если ≥ 0.4 → докручиваем до 1 и триггерим перелистывание.
+длительность финального snap:
+base: 160ms
++/− 40ms в зависимости от модульной скорости.
+3. Это делает поведение:
+предсказуемым (мозг привыкает к одной модели)
+без длинных «зависаний»/debounce на 400–500ms.
+
+Шаг 4: Сделать саму страницу «drag-controlled» в интерактивной фазе
+Тут начинается настоящая премиальность.
+В VideoSection (и/или основном контейнере перелистывания) вместо простого
+параллакса:
+const dragX = useMotionValue(0)
+const pageTranslate = useTransform(gestureProgress, 0, 1, 0, -PAGE_OFFSET_PX)
+
+Но лучше напрямую использовать накопленный delta:
+const dragX = useMotionValue(0)
+useEffect(() => {
+// когда жест активен, напрямую двигаем dragX,
+// не через framer animate, а через set() (следить за пальцем)
+dragX.set(currentDeltaPx) // маппинг deltaY→X или deltaX→X
+}, [gestureProgress]) // или отдельный publish её delta
+
+Когда вызывается finalizeGesture():
+один раз запускаем dragX.start({ to: targetX, transition: springs.soft })
+по окончании — переключаем слайд и сбрасываем dragX в 0.
+Так ты получаешь:
+в фазе drag → прямой контроль
+
+в фазе snap → мягкий, короткий, BORK-style spring.
+
+Шаг 5: Перекалибровать пороги и диапазон для трекпада
+Из логов:
+const wheelRange = Math.min(800, Math.max(280, window.innerHeight * 0.85))
+
+Изначально было 900/650, потом 800/280 и т.п.
+План:
+1. Сделать адаптивный wheelRange по высоте вьюпорта, но в жёстких границах:
+min: ~260–300px
+max: ~700–800px
+2. Для трекпада:
+меньшее значение → динамичнее.
+3. Для мыши:
+увеличить порог, чтобы обычный скролл не триггерил перелистывание.
+Формула типа:
+const base = window.innerHeight * 0.8
+const wheelRange = isTrackpad ? clamp(base, 260, 650) : clamp(base * 1.3, 400, 900)
+
+Шаг 6: Отладка на реальном трекпаде + DevTools
+1. Включить Chrome Performance:
+смотреть, есть ли Layout / Recalculate Style / Long Tasks > 16ms во время жеста.
+2. Если есть:
+искать любые операции, которые:
+меняют layout (width, height, left, top, position смена)
+дергают много React setState.
+3. Проверить, как ведут себя:
+прогресс-бар
+параллакс
+сам перелистыватель.
+
+4. Что в итоге должно получиться по ощущениям
+На тачпаде:
+Проводишь двумя пальцами → страница как будто под пальцем:
+контент чуть «плывёт»/сдвигается, но без дёрганий.
+Отпускаешь:
+за 140–180ms докручивает в ту сторону, куда ты явно «решил».
+Ни лагов, ни скачков, ни «наказаний» за мелкие движения.
+Плюс:
+упругие, но сдержанные spring-эффекты
+никаких layout-shifts (только transform/opacity).
+Если хочешь, дальше я могу:
+1. Пройтись по конкретному файлу useTrackpadGesture.ts (и компоненту, который
+перелистывается), и:
+прям по месту расписать, какие куски переписать на ref + RAF.
+2. Предложить точные значения:
+IDLE_FINALIZE_MS
+wheelRange под Mac трекпад / Windows Precision Touchpad
+
+кривые из utils/animations.ts под snap.
+Скажи, что для тебя важнее в первую очередь: максимальная плавность, физичность
+(как в iOS) или контроль (никаких неожиданных перелистываний) — под это чуть
+подстрою конкретные цифры и поведение.
+⁂
+
+мне важно ВСЕ из этого))
+также мне не нужен прогресс бар надо убрать
+Отлично! Тогда фулл-стек решение с максимальной плавностью, физичностью И
+контролем, без прогресс-бара.
+Дайте мне код из main2 ветки — конкретные файлы:
+1. frontendsrc/hooks/useTrackpadGesture.ts (или как он там называется)
+2. frontendsrc/pages/Home/index.tsx (или основной компонент с перелистыванием)
+3. frontendsrc/utils/animations.ts (для calibration)
+4. Любые другие файлы, где живёт логика VideoSection/слайда
+Получу код → прямо переишу его на месте с конкретными:
+
+двухуровневым RAF-паблишингом
+убранным прогресс-баром
+интерактивным drag-контролем (как iOS)
+оптимизированной финализацией
+физичными spring-кривыми
+никакими layout-shifts
+Могу либо:
+Вариант А: ты скопируешь нужные файлы в чат → я переишу и верну готовый код
+Вариант Б: я захожу прямо в твой git main2, смотрю файлы, пишу обновления и
+коммитю
+Какой предпочитаешь?
+
+просто посмотри файлы а потом сделай
+детальный план .тхт
+Сделаю детальный план именно как .txt‑документ (структура и пункты — ты сможешь
+просто скопировать в файл).
+vavip-trackpad-pageflip-plan.txt
+1. ЦЕЛИ
+1.1. Плавность
+60 FPS при жесте на трекпаде.
+Отсутствие микрофризов и «ступенек» при движении контента.
+1.2. Физичность (ощущение «страница под пальцем»)
+Пока палец движется, контент следует за ним 1:1 (через transform).
+После отпускания — короткий, предсказуемый snap с лёгкой пружиной.
+1.3. Контроль
+Никаких неожиданных перелистываний при мелком скролле.
+Ясный порог: либо страница перелистывается, либо мягко откатывается.
+1.4. UX‑правка
+Убрать прогресс-бар, оставить только «телесный» фидбэк через движение
+основной декы и микродвижение/стейты подписи/капшенов.
+2. ТЕКУЩАЯ СХЕМА (ИЗ main2)
+2.1. Хук useTrackpadGesture
+Хранит gestureProgress в useState.
+В handleWheel(e):
+
+читается e.deltaY, накапливается прогресс относительно SWIPE_THRESHOLD.
+делается setGestureProgress(Math.min(progress, 1)).
+через setTimeout через 500ms прогресс обнуляется.
+Возвращает gestureProgress, который используется:
+в Home (frontendsrc/pages/Home/index.tsx) для прогресс-бара снизу.
+возможно, как часть визуального индикатора жеста.
+2.2. Более продвинутый трекпад-движок (из логов)
+Константы:
+TRACKPAD_START_DELTA_PX, TRACKPAD_START_ACCUM_WINDOW_MS.
+TRACKPAD_GESTURE_IDLE_FINALIZE_MS (80 → 60–50 ms).
+SCROLL_DEBOUNCE (570 → 420 ms обсуждался).
+wheelRange = Math.min(800, Math.max(280, window.innerHeight * 0.85)).
+
+Вводятся:
+trackpadVelocityRef.current (px/ms).
+TRACKPAD_MIN_VELOCITY_TO_CONTINUE.
+TRACKPAD_FAST_VELOCITY_THRESHOLD = 1.5 px/ms.
+isFastGestureRef, lastFinalizeTimeRef, isAnimatingRef.
+
+Для fast gesture:
+Срабатывает моментальный commit (instant перелистывание) без долгого
+прогресса.
+2.3. UI‑слой
+Прогресс-бар: fixed motion.div снизу, ширина/scale по gestureProgress.
+CSS для VideoSection / captions:
+data-атрибуты data-gesture="true", data-direction="next|prev", datastate="active".
+Пока идёт движение деки, подписи скрыты/blur, активная — показывается
+чуть позднее.
+3. ПРОБЛЕМЫ ТЕКУЩЕЙ РЕАЛИЗАЦИИ
+3.1. Слишком много React‑рендеров на трекпаде
+Каждое wheel‑событие вызывает setGestureProgress.
+На трекпаде приходят десятки событий/сек → куча перерисовок, лишних layout’ов
+и анимаций Framer Motion.
+3.2. Сложная логика finalize/velocity
+Несколько таймеров, debounce’ов и проверок velocity.
+Может приводить к:
+
+«подхвату» малого жеста как перелистывания.
+позднему finalize (чувство лага после завершения жеста).
+3.3. Прогресс-бар как основной фидбэк
+Визуальный UX сейчас завязан на полоску прогресса снизу.
+Она не даёт ощущения «я двигаю страницу», а именно это важно.
+Ты её хочешь удалить — значит нужно перенести фидбэк в саму деку.
+3.4. Возможные layout‑шевеления
+Есть риск, что где-то gestureProgress влияет на width, left, top, margin и др.
+Это вызывает reflow вместо чистого GPU‑transform, особенно в сочетании с Framer
+Motion.
+3.5. Смесь мышиного скролла и трекпада
+Логика isLikelyTrackpad есть, но:
+она может постоянно пересчитываться.
+поведение мыши и трекпада могут «мешаться».
+4. НОВАЯ ЦЕЛЕВАЯ МОДЕЛЬ ЖЕСТА (ВЫСОКОУРОВНЕВО)
+4.1. Двухуровневая архитектура
+Уровень 1: Raw gesture engine (внутри useTrackpadGesture):
+слушает wheel/pointer события;
+аккумулирует delta, velocity, направление, состояние «активности» жеста;
+НЕ делает React setState на каждое событие.
+Уровень 2: UI-паблишер:
+1× requestAnimationFrame-loop.
+На каждом кадре (макс 60fps) читает накопленные значения из refs:
+currentOffsetPx (пиксели сдвига деки).
+currentVelocity.
+
+флаги isDragging, isFastGesture.
+Обновляет:
+минимум один useState/motionValue для деки (translateX/translateY).
+не более 1–2 связанных motion-параметров.
+4.2. Поведение по фазам
+Фаза A: Start
+Как только суммарная |delta| превышает TRACKPAD_START_DELTA_PX в пределах
+TRACKPAD_START_ACCUM_WINDOW_MS → считаем, что начался жест.
+Фиксируем направление gestureDirection (next/prev) по знаку delta.
+Включаем data-gesture="true" на деке (через React state или класс).
+
+Фаза B: Drag (active interaction)
+Пока приходят wheel-события, raw engine накапливает currentOffsetPx.
+В RAF loop:
+dragX.set(currentOffsetPx) → деки двигается ровно на величину жеста.
+
+никаких auto-анимаций (нет easing), чистый follow-finger.
+Фаза C: Idle & finalize
+Когда нет событий > TRACKPAD_GESTURE_IDLE_FINALIZE_MS (60–80ms), запускаем
+finalizeGesture():
+считаем normalizedProgress = |currentOffsetPx| / wheelRange.
+если normalizedProgress < SNAP_THRESHOLD (например, 0.4):
+анимируем dragX обратно к 0 (snap back).
+иначе:
+анимируем dragX в полное смещение следующей страницы (условный
+PAGE_WIDTH_PX или 100% вьюпорта).
+по завершении:
+scrollToIndex(nextIndex) (из Home).
+
+сбрасываем dragX в 0 и currentOffsetPx в 0.
+Для fast gesture (velocity > TRACKPAD_FAST_VELOCITY_THRESHOLD):
+можем игнорировать точный progress и сразу коммитить направление
+(как сейчас, но без прогресс-бара).
+5. ПЛАН РЕФАКТОРИНГА useTrackpadGesture
+5.1. Удаление/заморозка старого API
+Удаляем/перестаем использовать возвращаемый gestureProgress как число 0–1
+(для прогресс-бара).
+Оставляем API вида:
+useTrackpadGesture({ onGestureUpdate, onGestureCommit })
+
+где:
+
+onGestureUpdate({ offsetPx, velocity, direction, phase })
+onGestureCommit({ direction, isFast, velocity }).
+
+5.2. Внутренняя структура хука (псевдокод)
+refs:
+isTrackpadRef (boolean, определяется по маленьким delta и высокой частоте
+
+событий).
+
+offsetPxRef (накопленный сдвиг).
+velocityRef.
+lastEventTimeRef.
+
+gesturePhaseRef ("idle" | "drag" | "snap").
+directionRef ("next" | "prev" | null).
+idleTimerRef.
+rafIdRef.
+handleWheel(e):
+
+ранний выход, если !isTrackpadRef.current и ты решишь отключить ту же
+модель для мыши.
+считаем dt = now - lastEventTimeRef.
+обновляем offsetPxRef += deltaY (со знаком, возможно с коэф.
+чувствительности).
+velocityRef = abs(deltaY) / dt.
+
+если gesturePhaseRef === "idle" и |offsetPxRef| перескочил
+TRACKPAD_START_DELTA_PX за TRACKPAD_START_ACCUM_WINDOW_MS:
+gesturePhaseRef = "drag".
+
+задаём directionRef по знаку.
+сброс и переназначение idle‑таймера finalize.
+проставляем флаг needsPublishRef.current = true.
+RAF-loop (один useEffect):
+если needsPublishRef.current:
+вызываем onGestureUpdate с текущими offsetPxRef, velocityRef,
+directionRef, gesturePhaseRef.
+needsPublishRef.current = false.
+
+рекурсивно ставим requestAnimationFrame.
+finalizeGesture():
+
+если gesturePhaseRef !== "drag", просто return.
+рассчитываем normalizedProgress = clamp(|offsetPxRef| / wheelRange, 0, 1).
+fast gesture: если velocityRef > TRACKPAD_FAST_VELOCITY_THRESHOLD:
+onGestureCommit({ direction: directionRef, isFast: true, velocity:
+velocityRef }).
+
+сбрасываем refs → "idle".
+иначе:
+если normalizedProgress < SNAP_THRESHOLD:
+gesturePhaseRef = "snap";
+onGestureUpdate с phase: "snap-back";
+
+ожидаем, что UI слой сам анимирует dragX к 0 (через Framer spring).
+else:
+
+gesturePhaseRef = "snap";
+onGestureUpdate с phase: "snap-forward";
+
+UI слой анимирует dragX до полной ширины.
+по завершении Framer анимации UI вызывает onGestureCommit и потом
+сигналит хуку о resetGesture().
+5.3. Учет prefers-reduced-motion
+Если useReducedMotion() → true:
+вообще не активировать trackpad-перелистывание, только обычный scroll.
+либо делать мгновенные jumps без плавных анимаций.
+6. ИЗМЕНЕНИЯ В Home / VideoSection / CSS
+6.1. Удаление прогресс-бара
+В Home/index.tsx:
+удалить const gestureProgress = useTrackpadGesture() в старом виде.
+удалить нижний motion.div с полоской прогресса.
+6.2. Внедрение drag-контроля деки
+В контейнере, который содержит всю «колоду» видео/секций:
+завести const dragX = useMotionValue(0) (или dragY — зависит от направления).
+подписаться на onGestureUpdate из хука и внутри:
+если phase === 'drag': dragX.set(offsetPx);
+если phase === 'snap-back': dragX.start({ to: 0, transition: springs.soft
+});
+если phase === 'snap-forward': dragX.start({ to: targetOffset, transition:
+springs.medium }).
+Сам контейнер:
+<motion.div style={{ x: dragX, willChange: 'transform' }} ...>
+{/* deck of slides */}
+</motion.div>
+
+6.3. Подписи/капшены (VideoSection.module.css)
+Использовать существующие data-атрибуты:
+data-gesture="true"
+data-direction="next|prev"
+data-state="active|inactive"
+
+Логика:
+Пока phase === 'drag' или phase === 'snap':
+Неактивные капшены скрыты/blur (как уже сделано).
+
+Активный может быть виден, но с небольшим смещением и blur.
+После окончания snap:
+data-gesture="false", активный caption плавно появляется (opacity +
+
+translateY + blur → 0).
+6.4. Только transform/opacity
+
+Любые анимации деки и подписи — только через:
+transform: translateX / translateY, scale, opacity.
+will-change: transform, opacity на основных движущихся контейнерах.
+
+7. КАЛИБРОВКА КОНСТАНТ
+7.1. wheelRange
+Формула:
+const base = window.innerHeight * 0.85
+const wheelRange = isTrackpad
+? clamp(base, 260, 650)
+: clamp(base * 1.3, 400, 900)
+
+Это даст:
+на трекпаде — приятную чувствительность;
+на мышке — более «тугой» жест (меньше случайных перелистываний).
+7.2. SNAP_THRESHOLD
+Начать с 0.4:
+< 40% → откат
+≥ 40% → перелистывание
+
+При необходимости:
+повышать до 0.5 для более консервативного поведения.
+7.3. TRACKPAD_GESTURE_IDLE_FINALIZE_MS
+60–80ms:
+меньше 60 → может резать ещё активный жест
+больше 80 → чувствуется лаг.
+7.4. Скорости
+TRACKPAD_MIN_VELOCITY_TO_CONTINUE: ~0.4–0.6 px/ms.
+TRACKPAD_FAST_VELOCITY_THRESHOLD: ~1.3–1.6 px/ms.
+
+7.5. Переходы (из utils/animations.ts)
+Snap-back:
+duration: 0.16–0.18, ease: easings.smooth.
+
+Snap-forward (нормальный):
+
+duration: 0.18–0.22, ease: easings.organic или springs.soft.
+
+Snap-forward (fast gesture):
+чуть короче (0.14–0.18) + немного большей amplitude пружины.
+8. ТЕСТ-ПЛАН
+8.1. DevTools Performance
+Записать трекпад-жест:
+убедиться, что во время drag:
+нет длинных Layout и Recalculate Style > 4–5ms.
+основная нагрузка — на Animation/Composite Layers.
+8.2. Поведение на разных устройствах
+MacBook трекпад.
+Windows Precision Touchpad.
+Обычная мышь:
+либо перелистывание отключено,
+либо настроено с более высоким порогом.
+8.3. UX-ощущения
+Можно ли «поиграться» жестом: чуть туда, чуть обратно, не доходя до порога.
+Нет ли резких скачков, когда отпускаешь пальцы.
+Нет ли ситуации, когда лёгкий скролл всё равно дергает деку.
+9. ДОПОЛНИТЕЛЬНЫЕ ПРЕМИУМ-ДЕТАЛИ (ПОСЛЕ ОСНОВНОГО РЕФАКТОРА)
+9.1. Мелкий наклон (3D tilt) при drag
+На фазе drag:
+добавить легкий rotateY (в сторону жеста) пропорционально offsetPx.
+до 6–8 градусов максимум.
+9.2. subtle parallax слоя background
+Внутри VideoSection:
+разный коэффициент для фона и контентного слоя:
+фон двигается на ~0.5 * offset
+передний план — на 1 * offset.
+9.3. Звуковой фидбэк (опционально)
+В момент commit (snap-forward завершён) — очень тихий «page flip» звук success с
+0.06–0.08 volume.
+Если нужно, следующим шагом могу сделать конкретный diff-план: какие именно
+функции/строки в useTrackpadGesture.ts, Home/index.tsx и VideoSection поменять, и как
+
+назвать новые пропсы (onGestureUpdate, onGestureCommit, phase, offsetPx, и т.д.).
+⁂
+
+1. chekni-git-mosuner-vavip-vetka-7xrlvNa_Tu2RbPTdqj305A.md
+2. chekni-git-mosuner-vavip-vetka-7xrlvNa_Tu2RbPTdqj305A.md
+
+

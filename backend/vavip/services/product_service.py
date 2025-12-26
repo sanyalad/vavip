@@ -463,3 +463,4 @@ class FavoriteService:
         
         return [f.product.to_dict() for f in favorites if f.product and f.product.is_active]
 
+

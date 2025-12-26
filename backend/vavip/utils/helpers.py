@@ -65,3 +65,4 @@ def truncate_text(text, max_length=100, suffix='...'):
 
 
 
+
