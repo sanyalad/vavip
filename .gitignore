@@ -40,10 +40,19 @@ htmlcov/
 # Database
 *.db
 *.sqlite3
+backend/instance/
 
 # Temporary
 tmp/
 temp/
+temp-*/
+temp_*/
+*-temp/
+*-temp_*/
+card-flip-navigator/
+temp_card_repo/
+temp_vavip_repo/
+temp-graphite-hub/
 
 # Cache
 .cache/
@@ -60,6 +69,10 @@ temp/
 для_плана/
 *.pdf
 *.html
+
+# Temporary text files with cyrillic
+*подключен*.txt
+*видеть*.txt
 
 # Debug logs
 .cursor/debug.log
