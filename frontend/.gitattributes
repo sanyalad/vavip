@@ -1,7 +1,8 @@
-# Remove read-only attribute for all files
-* -text
+# Auto detect text files and perform LF normalization
 * text=auto
 
-# Ensure all files are writable
-* !read-only
+# Ensure all files are treated as text and normalized
+* -text eol=lf
 
+# Remove read-only attribute
+* -read-only
