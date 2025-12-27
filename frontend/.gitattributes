@@ -1,0 +1,7 @@
+# Remove read-only attribute for all files
+* -text
+* text=auto
+
+# Ensure all files are writable
+* !read-only
+
