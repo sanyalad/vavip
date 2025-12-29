@@ -1,0 +1,188 @@
+﻿/* ===== Stacked sections ===== */
+.videoSection {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  outline: none;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.videoSection.active,
+.videoSection[data-state="active"] {
+  opacity: 1;
+  pointer-events: auto;
+  background: transparent;
+  visibility: visible;
+}
+
+/* ===== ╨Т╨╕╨┤╨╡╨╛ ╨▓╨╜╤Г╤В╤А╨╕ ╤Б╨╡╨║╤Ж╨╕╨╣ ===== */
+.videoSection video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* ╨С╨╡╨╖ ╨╖╨░╤В╨╡╨╝╨╜╨╡╨╜╨╕╤П ╨┤╨╗╤П ╤З╨╕╤Б╤В╨╛╨╣ ╨░╨╜╨╕╨╝╨░╤Ж╨╕╨╕ */
+  filter: brightness(1);
+  /* GPU-╤Г╤Б╨║╨╛╤А╨╡╨╜╨╕╨╡ */
+  transform: translateZ(0);
+  opacity: 1;
+}
+
+/* ╨Я╨╛╨║╨░╨╖╤Л╨▓╨░╨╡╨╝ poster ╨┐╨╛╨║╨░ ╨▓╨╕╨┤╨╡╨╛ ╨╜╨╡ ╨│╨╛╤В╨╛╨▓╨╛ */
+.videoSection:not([data-video-ready="true"]) video {
+  opacity: 0.7;
+}
+
+.videoSection[data-video-ready="true"] video {
+  opacity: 1;
+}
+
+.videoSection.active video,
+.videoSection[data-state="active"] video {
+  filter: brightness(1);
+}
+
+/* All non-active sections should have normal brightness */
+/* Darkening is handled separately if needed */
+.videoSection.next video,
+.videoSection.prev video,
+.videoSection[data-state="next"] video,
+.videoSection[data-state="prev"] video {
+  filter: brightness(1);
+}
+
+/* ===== ╨Ъ╨╗╨╕╨║╨░╨▒╨╡╨╗╤М╨╜╤Л╨╣ ╨╛╨▓╨╡╤А╨╗╨╡╨╣-╤Б╤Б╤Л╨╗╨║╨░ ===== */
+.sectionLink {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: block;
+  cursor: pointer;
+  background: transparent;
+}
+
+/* ===== ╨Я╨╛╨┤╨┐╨╕╤Б╨╕ ╨║ ╤Б╨╡╨║╤Ж╨╕╤П╨╝ ===== */
+.videoCaption {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  font-family: 'Gotham', Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: 0.15em;
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  /* Inline styles from React state will control opacity and transform */
+  opacity: 0;
+  transform: translate3d(-50%, 30px, 0);
+}
+
+/* Caption visibility is now controlled by React state (showCaption) via inline styles */
+
+/* ===== Video poster fallback ===== */
+.videoPoster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .videoSection {
+    will-change: auto;
+    transition: none;
+    /* GSAP ╨▒╤Г╨┤╨╡╤В ╤Г╨┐╤А╨░╨▓╨╗╤П╤В╤М transform, ╨╜╨╡ ╨▒╨╗╨╛╨║╨╕╤А╤Г╨╡╨╝ ╨╡╨│╨╛ */
+  }
+  
+  .videoCaption {
+    transition: none;
+    /* GSAP ╤Г╨┐╤А╨░╨▓╨╗╤П╨╡╤В ╨░╨╜╨╕╨╝╨░╤Ж╨╕╨╡╨╣, ╨╜╨╛ ╨┤╨╗╤П reduced motion ╤Б╤А╨░╨╖╤Г ╨┐╨╛╨║╨░╨╖╤Л╨▓╨░╨╡╨╝ */
+  }
+  
+  .videoSection video {
+    transition: none;
+  }
+
+  .videoSection.active .videoCaption,
+  .videoSection[data-state="active"] .videoCaption {
+    opacity: 1;
+    transform: translate(-50%, 0) translateZ(0);
+    filter: blur(0);
+  }
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+  .videoCaption {
+    bottom: 120px;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    filter: none;
+  }
+  
+  .videoSection.active .videoCaption,
+  .videoSection[data-state="active"] .videoCaption {
+    filter: none;
+  }
+}
+
+/* ===== Safari fixes and macOS performance optimizations ===== */
+@supports (-webkit-touch-callout: none) {
+  .videoSection {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    height: -webkit-fill-available;
+    min-height: 100vh;
+    min-height: 100svh;
+    /* Optimize for Safari: use transform3d for better GPU acceleration */
+    transform: translate3d(0, 0, 0);
+    /* Reduce will-change scope for better performance */
+    will-change: transform, opacity;
+    /* Improve compositing on Safari */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+  }
+
+  /* Disable will-change when not actively animating to save resources */
+  .videoSection[data-state="active"]:not([data-gesture="true"]) {
+    will-change: auto;
+  }
+
+  /* Optimize video elements for Safari */
+  .videoSection video {
+    -webkit-transform: translateZ(0);
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* ===== Touch optimizations ===== */
+@media (hover: none) and (pointer: coarse) {
+  .videoCaption {
+    transition:
+      opacity 0.6s ease,
+      transform 0.8s ease;
+  }
+}
+

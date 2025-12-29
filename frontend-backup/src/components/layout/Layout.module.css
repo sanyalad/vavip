@@ -1,0 +1,41 @@
+﻿/* Layout container */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+/* Main content area */
+.main {
+  flex: 1;
+  width: 100%;
+  /* Allow main content to take full height without fixed header interference */
+}
+
+/* Desktop: add padding-top for non-home pages to account for fixed header */
+.mainNotHome {
+  padding-top: var(--header-h, 140px);
+}
+
+/* Mobile: add padding-top for non-home pages to prevent content overlap with mobile header */
+/* Mobile bar: top 8px + logo height clamp(64px, 15vw, 88px) тЙИ 96px max + safety margin тЙИ 112px */
+@media (max-width: 719px) {
+  .mainNotHome {
+    padding-top: clamp(104px, 22vw, 120px);
+  }
+}
+
+/* Smaller mobile: top 6px + logo 72px тЙИ 78px max + safety margin тЙИ 96px */
+@media (max-width: 480px) {
+  .mainNotHome {
+    padding-top: clamp(88px, 20vw, 100px);
+  }
+}
+
+/* Very small mobile: top 4px + logo 72px тЙИ 76px max + safety margin тЙИ 92px */
+@media (max-width: 360px) {
+  .mainNotHome {
+    padding-top: clamp(84px, 19vw, 96px);
+  }
+}

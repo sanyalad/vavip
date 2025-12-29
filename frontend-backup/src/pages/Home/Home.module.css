@@ -1,0 +1,21 @@
+﻿/* ===== Home page ===== */
+.home {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* ===== Video Sections Wrapper ===== */
+.videoSectionsWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .videoSectionsWrapper section {
+    will-change: auto;
+  }
+}

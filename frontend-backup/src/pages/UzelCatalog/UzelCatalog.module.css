@@ -1,0 +1,797 @@
+﻿.catalogPage {
+  min-height: 100vh;
+  padding: 0 0 clamp(var(--spacing-xl), 3vw, var(--spacing-3xl));
+  background: var(--color-bg);
+}
+
+/* ===== BORK-like catalog layout (mono) ===== */
+.borkContainer {
+  max-width: 1290px;
+  margin: 0 auto;
+  padding: 0 clamp(var(--spacing-md), 2vw, var(--spacing-lg)) clamp(var(--spacing-xl), 3vw, var(--spacing-3xl));
+}
+
+.borkLayout {
+  display: grid;
+  grid-template-columns: clamp(200px, 20vw, 260px) 1fr;
+  gap: clamp(20px, 2.5vw, 28px);
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .borkLayout {
+    grid-template-columns: 1fr;
+    gap: clamp(18px, 2.2vw, 24px);
+  }
+}
+
+.borkSidebar {
+  position: sticky;
+  top: calc(var(--header-h, 140px) + 20px);
+  max-height: calc(100vh - var(--header-h, 140px) - 40px);
+  overflow-y: auto;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.borkSidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.borkSidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.borkCategoryList {
+  display: grid;
+  gap: 14px;
+}
+
+.borkCategoryLink {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.borkCategoryLink:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.borkCategoryLinkActive {
+  /* BORK-style: ╤В╨╛╨╗╤М╨║╨╛ ╤Ж╨▓╨╡╤В ╤В╨╡╨║╤Б╤В╨░ ╨┤╨╗╤П active state */
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.borkSection {
+  margin-top: 6px;
+}
+
+.borkSectionTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.borkSectionLead {
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.06em;
+}
+
+.borkShopLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: border-color var(--transition-fast), background var(--transition-fast), opacity var(--transition-fast);
+}
+
+.borkShopLink:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.borkGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 34px 28px;
+}
+
+.borkCard {
+  background: transparent;
+  position: relative;
+  perspective: 1100px;
+}
+
+/* 3D tilt effect on hover */
+.borkCard:hover .borkTile {
+  transform: rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg)) translateZ(10px);
+}
+
+.borkCardLink {
+  display: block;
+  color: inherit;
+  height: 100%;
+}
+
+.borkTile {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg)) translateZ(0);
+  transition: 
+    transform 0.18s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: transform;
+}
+
+/* Radial highlight on hover */
+.borkTile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    600px circle at var(--tilt-mx, 50%) var(--tilt-my, 50%),
+    rgba(255, 255, 255, 0.10),
+    rgba(255, 255, 255, 0) 45%
+  );
+  transition: opacity 0.25s ease;
+}
+
+.borkCard:hover .borkTile::after {
+  opacity: 1;
+}
+
+.borkTileMark {
+  position: absolute;
+  left: 22px;
+  top: 22px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.borkPlus {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.8);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+  background: rgba(10, 10, 10, 0.22);
+  cursor: pointer;
+  padding: 0;
+  appearance: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+}
+
+.borkCard:hover .borkPlus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  transform: scale(1.08);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.borkCardMedia {
+  width: 66%;
+  height: 66%;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.borkCardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.borkCardMedia .nodeSvg {
+  display: none;
+}
+
+.borkCardMedia img[style*="display: none"] ~ .nodeSvg {
+  display: block;
+}
+
+.nodeSvg {
+  width: 100%;
+  height: 100%;
+  stroke: rgba(255, 255, 255, 0.42);
+  stroke-width: 2;
+  fill: none;
+  opacity: 0.9;
+}
+
+.nodeSvg circle {
+  fill: rgba(255, 255, 255, 0.04);
+}
+
+.borkInfo {
+  padding: 14px 2px 0;
+}
+
+.borkName {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 8px;
+}
+
+.borkPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.borkPrice {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.borkTag {
+  color: rgba(192, 192, 192, 0.9);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 1100px) {
+  .borkLayout {
+    grid-template-columns: 220px 1fr;
+  }
+  .borkGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .catalogPage {
+    padding: calc(var(--header-h) + clamp(16px, 4vw, 20px)) clamp(12px, 3vw, 16px) clamp(var(--spacing-lg), 4vw, var(--spacing-xl));
+  }
+
+  .borkContainer {
+    padding: 0 clamp(8px, 2vw, 12px) clamp(var(--spacing-md), 3vw, var(--spacing-lg));
+  }
+
+  .borkHero {
+    padding: clamp(12px, 2vw, 16px) 0 clamp(8px, 1.5vw, 10px);
+    margin-bottom: clamp(20px, 4vw, 24px);
+  }
+
+  .borkTitle {
+    font-size: clamp(18px, 5vw, 24px);
+    line-height: 1.3;
+  }
+
+  .borkSubtitle {
+    font-size: clamp(11px, 3vw, 13px);
+    margin-top: clamp(6px, 1.5vw, 8px);
+  }
+
+  .borkLayout {
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 3vw, 20px);
+  }
+
+  .borkGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(12px, 2.5vw, 16px);
+  }
+
+  .borkSidebar {
+    padding-top: 0;
+    margin-bottom: clamp(12px, 2.5vw, 16px);
+  }
+
+  .borkCategoryList {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    gap: clamp(10px, 2vw, 14px);
+    padding-bottom: clamp(6px, 1.5vw, 8px);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 12px;
+    overscroll-behavior-x: contain;
+  }
+
+  .borkCategoryList::-webkit-scrollbar {
+    height: 0;
+  }
+
+  .borkCategoryList > li {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .borkCategoryLink {
+    white-space: nowrap;
+    font-size: clamp(13px, 3.5vw, 15px);
+    padding: clamp(6px, 1.5vw, 8px) 0;
+  }
+
+  .borkSection {
+    margin-top: 0;
+  }
+
+  .borkSectionTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(10px, 2vw, 14px);
+    margin-bottom: clamp(14px, 3vw, 18px);
+  }
+
+  .borkShopLink {
+    width: 100%;
+  }
+
+  .borkSectionLead {
+    font-size: clamp(12px, 3vw, 14px);
+    line-height: 1.5;
+  }
+
+  .borkShopLink {
+    height: clamp(36px, 8vw, 40px);
+    padding: 0 clamp(14px, 3vw, 18px);
+    font-size: clamp(10px, 2.5vw, 12px);
+    width: 100%;
+    justify-content: center;
+  }
+
+  .borkTile {
+    aspect-ratio: 4 / 3;
+    min-height: 100px;
+    max-height: 140px;
+    border-radius: clamp(8px, 2vw, 12px);
+  }
+
+  .borkTileMark {
+    left: clamp(10px, 2.5vw, 14px);
+    top: clamp(10px, 2.5vw, 14px);
+    font-size: clamp(9px, 2vw, 11px);
+  }
+
+  .borkPlus {
+    top: clamp(10px, 2.5vw, 12px);
+    right: clamp(10px, 2.5vw, 12px);
+    width: clamp(24px, 5vw, 28px);
+    height: clamp(24px, 5vw, 28px);
+    font-size: clamp(14px, 3.5vw, 16px);
+  }
+
+  .borkCardMedia {
+    width: 40%;
+    height: 40%;
+  }
+
+  .borkInfo {
+    padding: clamp(6px, 1.5vw, 8px) clamp(2px, 0.5vw, 4px) 0;
+  }
+
+  .borkName {
+    font-size: clamp(13px, 3vw, 15px);
+    margin: 0 0 clamp(4px, 1vw, 6px);
+    line-height: 1.3;
+  }
+
+  .borkPriceRow {
+    gap: clamp(6px, 1.5vw, 8px);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .borkPrice {
+    font-size: clamp(12px, 2.8vw, 14px);
+  }
+
+  .borkTag {
+    font-size: clamp(10px, 2.2vw, 12px);
+  }
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--spacing-2xl);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg) var(--spacing-2xl);
+  align-items: center;
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.kicker {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.title {
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.lead {
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+  max-width: 680px;
+}
+
+.heroActions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.primaryCta {
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #d9d9d9, #6f7782);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.primaryCta:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #e5e7eb, #7b8592);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+
+.secondaryCta {
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.heroPreview {
+  position: relative;
+  justify-self: end;
+}
+
+.previewCard {
+  position: relative;
+  padding: var(--spacing-xl);
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.previewCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12), transparent 40%);
+  pointer-events: none;
+}
+
+.previewBadge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(192, 192, 192, 0.18);
+  color: #f1c48b;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--spacing-md);
+  position: relative;
+}
+
+.previewBody {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  color: #f5f5f5;
+}
+
+.previewBody strong {
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+}
+
+.previewBody span {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.catalogLayout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg) var(--spacing-3xl);
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: calc(var(--header-h) + 12px);
+  display: grid;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(12, 12, 12, 0.65);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.sidebarTitle {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.categoryList {
+  display: grid;
+  gap: 8px;
+}
+
+.categoryItem {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
+}
+
+.categoryItem:hover {
+  border-color: rgba(192, 192, 192, 0.22);
+  transform: translateX(4px);
+}
+
+.categoryItemActive {
+  border-color: rgba(192, 192, 192, 0.4);
+  background: rgba(192, 192, 192, 0.12);
+}
+
+.categoryDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c0c0c0;
+  justify-self: center;
+}
+
+.categoryName {
+  letter-spacing: 0.04em;
+}
+
+.productsArea {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.productsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  font-size: clamp(1.8rem, 3.4vw, 2.4rem);
+  letter-spacing: 0.06em;
+  margin: var(--spacing-xs) 0;
+}
+
+.sectionLead {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.productCard {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: var(--spacing-lg);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.productCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 42%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+
+.productCard:hover::after {
+  opacity: 1;
+}
+
+.productTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.62);
+  letter-spacing: 0.06em;
+}
+
+.productBadge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(192, 192, 192, 0.2);
+  color: #f1c48b;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.productCode {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.productTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.productText {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  min-height: 64px;
+}
+
+.productActions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.ghostBtn,
+.primaryGhostBtn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.ghostBtn:hover,
+.primaryGhostBtn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(192, 192, 192, 0.26);
+}
+
+.primaryGhostBtn {
+  background: linear-gradient(135deg, #d9d9d9, #6f7782);
+  border-color: rgba(192, 192, 192, 0.4);
+}
+
+.productPlaceholder {
+  position: relative;
+  height: 140px;
+  border-radius: 14px;
+  margin-top: var(--spacing-sm);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.10), rgba(18, 20, 22, 0.3));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.placeholderShape {
+  position: absolute;
+  inset: 18px;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08), transparent 50%);
+}
+
+.placeholderOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #f1c48b;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 1100px) {
+  .catalogLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 960px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .heroPreview {
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 720px) {
+  .catalogPage {
+    padding: calc(var(--header-h) + 20px) 0 var(--spacing-2xl);
+  }
+
+  .hero {
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .productsGrid {
+    gap: var(--spacing-lg);
+  }
+}
+

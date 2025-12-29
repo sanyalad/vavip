@@ -1,0 +1,789 @@
+﻿/* ===== BORK-style Typography ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap');
+
+/* ===== CSS Variables (╨╕╨╖ ╨╛╤А╨╕╨│╨╕╨╜╨░╨╗╤М╨╜╨╛╨│╨╛ ╨┐╤А╨╛╨╡╨║╤В╨░) ===== */
+:root {
+  /* BORK-style Typography */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Montserrat', 'Inter', sans-serif;
+  
+  /* ╨Т╤А╨╡╨╝╨╡╨╜╨░ ╨░╨╜╨╕╨╝╨░╤Ж╨╕╨╣ ╨╕ ╨┐╨╡╤А╨╡╤Е╨╛╨┤╨╛╨▓ (BORK-style: ╨╝╨╡╨┤╨╗╨╡╨╜╨╜╤Л╨╡, ╨┐╤А╨╡╨╝╨╕╨░╨╗╤М╨╜╤Л╨╡) */
+  --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.6, 1);
+  --transition-medium: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --transition-premium: 0.8s cubic-bezier(0.23, 0.9, 0.15, 1);
+  --transition-dropdown: .7s;
+  --dropdown-speed: var(--transition-dropdown);
+  --transition-long: .6s ease;
+  
+  /* ╨Я╤А╨╡╨╝╨╕╨░╨╗╤М╨╜╤Л╨╡ easing ╨║╤А╨╕╨▓╤Л╨╡ */
+  --easing-premium: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --easing-enter: cubic-bezier(0.23, 0.9, 0.15, 1);
+  --easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --easing-micro: cubic-bezier(0.4, 0, 0.6, 1);
+  
+  /* Spring-like easing (╨╕╨╝╨╕╤В╨░╤Ж╨╕╤П ╤Д╨╕╨╖╨╕╨║╨╕/╨│╤А╨░╨▓╨╕╤В╨░╤Ж╨╕╨╕) */
+  --easing-spring-light: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --easing-spring-medium: cubic-bezier(0.25, 1.25, 0.5, 1);
+  --easing-spring-heavy: cubic-bezier(0.2, 1, 0.4, 1);
+  --easing-gravity-down: cubic-bezier(0.23, 0.9, 0.15, 1);
+  --easing-gravity-up: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* BORK-style Spacing (╤Г╨▓╨╡╨╗╨╕╤З╨╡╨╜╨╜╤Л╨╡ ╨╛╤В╤Б╤В╤Г╨┐╤Л) */
+  --spacing-section: clamp(64px, 8vw, 128px);
+  --spacing-component: clamp(32px, 4vw, 64px);
+
+  /* ╨С╨░╨╖╨╛╨▓╤Л╨╡ ╤А╨░╨╖╨╝╨╡╤А╤Л */
+  --menu-x: 40px;
+  --header-h: 0px;
+  --border-radius: 4px;
+
+  /* ╨в╨╡╨╜╨╕ ╨┤╨╗╤П ╤В╨╡╨║╤Б╤В╨░ */
+  --text-shadow-light: 0 2px 8px rgba(0,0,0,0.6);
+  --text-shadow-medium: 0 2px 10px rgba(0,0,0,.45);
+  --text-shadow-heavy: 0 6px 22px rgba(0,0,0,.55);
+
+  /* ╨б╤В╨╕╨╗╨╕ ╤Д╨╛╨║╤Г╤Б╨░ (╨╝╨╛╨╜╨╛╤Е╤А╨╛╨╝) */
+  --focus-outline: 2px solid rgba(192, 192, 192, 0.75);
+  --focus-offset: 2px;
+
+  /* ╨ж╨▓╨╡╤В╨░ ╨▒╤А╨╡╨╜╨┤╨░ ╨╕ hoverтАС╤Н╤Д╤Д╨╡╨║╤В╤Л (╤Б╨╡╤А╨╡╨▒╤А╨╛/╨│╤А╨░╤Д╨╕╤В) */
+  --hover-bg: rgba(192, 192, 192, 0.18);
+  --hover-stroke: #c0c0c0;
+  --phone-color: #fff;
+
+  /* ╨Ю╤Б╨╜╨╛╨▓╨╜╤Л╨╡ ╤Ж╨▓╨╡╤В╨░ */
+  --color-bg: #0a0a0a;
+  --color-bg-secondary: #121416;
+  --color-bg-tertiary: #1a1a1a;
+  --color-accent: #c0c0c0; /* silver */
+  --color-accent-hover: rgba(192, 192, 192, 0.28);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #c0c0c0; /* silver */
+  --color-text-muted: #a5aab5; /* soft graphite/silver */
+  --color-border: rgba(255, 255, 255, 0.12);
+  /* Scrollbar compensation (prevents header/logo shift when scroll-lock toggles) */
+  --scrollbar-gap: 0px;
+  /* Body fixed-scroll lock */
+  --scroll-lock-top: 0px;
+  /* ╨Ь╨╛╨╜╨╛╤Е╤А╨╛╨╝╨╜╤Л╨╡ ╤Б╤В╨░╤В╤Г╤Б╤Л (╨┐╨╛ ╨╖╨░╨┐╤А╨╛╤Б╤Г ╨┐╨░╨╗╨╕╤В╤А╤Л: ╨│╤А╨░╤Д╨╕╤В/╤Б╨╡╤А╨╡╨▒╤А╨╛/╤З╤С╤А╨╜╤Л╨╣) */
+  --color-error: #d1d5db;
+  --color-success: #c0c0c0;
+  --color-warning: #a5aab5;
+
+  /* Z-index */
+  --z-dropdown: 950;
+  --z-header: 1000;
+  --z-mobile-bar: 1200;
+  --z-modal: 1300;
+  --z-loader: 10000;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* Responsive Spacing (fluid scaling) */
+  --spacing-responsive-xs: clamp(0.25rem, 0.2rem + 0.2vw, 0.375rem);
+  --spacing-responsive-sm: clamp(0.5rem, 0.4rem + 0.3vw, 0.75rem);
+  --spacing-responsive-md: clamp(0.75rem, 0.625rem + 0.5vw, 1rem);
+  --spacing-responsive-lg: clamp(1rem, 0.875rem + 0.75vw, 1.5rem);
+  --spacing-responsive-xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --spacing-responsive-2xl: clamp(2rem, 1.75rem + 1.5vw, 3rem);
+  --spacing-responsive-3xl: clamp(3rem, 2.5rem + 2vw, 4rem);
+
+  /* Typography (BORK-style: Inter + Montserrat) */
+  --font-family: var(--font-body);
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+
+  /* Responsive Typography (fluid scaling) */
+  --font-size-responsive-xs: clamp(0.625rem, 0.5rem + 0.5vw, 0.75rem);
+  --font-size-responsive-sm: clamp(0.75rem, 0.625rem + 0.5vw, 0.875rem);
+  --font-size-responsive-base: clamp(0.875rem, 0.75rem + 0.5vw, 1rem);
+  --font-size-responsive-lg: clamp(1rem, 0.875rem + 0.5vw, 1.125rem);
+  --font-size-responsive-xl: clamp(1.125rem, 1rem + 0.5vw, 1.25rem);
+  --font-size-responsive-2xl: clamp(1.25rem, 1.125rem + 0.75vw, 1.5rem);
+  --font-size-responsive-3xl: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+  --font-size-responsive-4xl: clamp(1.875rem, 1.5rem + 1.5vw, 2.25rem);
+  --font-size-responsive-5xl: clamp(2.25rem, 1.875rem + 2vw, 3rem);
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Breakpoints */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* macOS-specific spacing (will be overridden for macOS) */
+  --macos-min-touch-target: 44px;
+  --macos-interactive-spacing: 1.25rem;
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #1f2228 transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* BORK-style Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 300; /* ╨Ы╤С╨│╨║╨╕╨╣ ╤И╤А╨╕╤Д╤В BORK-style */
+  letter-spacing: 0.04em;
+}
+
+/* Uppercase ╨░╨║╤Ж╨╡╨╜╤В╤Л BORK-style */
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+}
+
+/* macOS-specific font optimizations */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    -webkit-font-smoothing: subpixel-antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1;
+    font-kerning: normal;
+  }
+
+  /* Retina display optimizations */
+  @media (-webkit-min-device-pixel-ratio: 2),
+         (min-resolution: 192dpi) {
+    html, body {
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Slightly adjust letter-spacing for better readability on Retina */
+    body {
+      letter-spacing: 0.01em;
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--header-h, 0px);
+  /* Avoid reserved gutter that looks like a side offset */
+  scrollbar-gutter: auto;
+  overflow-y: auto;
+}
+
+/* ===== Scrollbar ===== */
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #6b7280;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+/* macOS-specific scrollbar styles */
+@supports (-webkit-touch-callout: none) {
+  body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  body::-webkit-scrollbar-thumb {
+    background-color: rgba(155, 155, 155, 0.5);
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+  }
+
+  body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(155, 155, 155, 0.7);
+  }
+
+  body::-webkit-scrollbar-thumb:active {
+    background-color: rgba(155, 155, 155, 0.9);
+  }
+
+  /* Auto-hide scrollbar when not scrolling (macOS behavior) */
+  body::-webkit-scrollbar-thumb {
+    opacity: 0;
+  }
+
+  body:hover::-webkit-scrollbar-thumb,
+  body:focus-within::-webkit-scrollbar-thumb {
+    opacity: 1;
+  }
+}
+
+/* ===== Focus states ===== */
+:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+/* ===== Utility classes ===== */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}
+
+/* ===== Micro-interactions ===== */
+a, button, [role="button"], .btn {
+  transition: 
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* macOS-specific spacing and touch target improvements */
+@supports (-webkit-touch-callout: none) {
+  /* Ensure minimum touch target size for macOS (44x44px per HIG) */
+  button,
+  a[role="button"],
+  [role="button"],
+  .btn,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    min-height: var(--macos-min-touch-target);
+    min-width: var(--macos-min-touch-target);
+    padding: 0.75rem 1.25rem;
+  }
+
+  /* Increase spacing between interactive elements */
+  nav a + a,
+  .menuItemButton + .menuItemButton,
+  button + button,
+  .btn + .btn {
+    margin-left: var(--macos-interactive-spacing);
+  }
+
+  /* Better spacing for icon buttons */
+  .iconBtn,
+  .iconLink {
+    min-width: var(--macos-min-touch-target);
+    min-height: var(--macos-min-touch-target);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+}
+
+/* Hover glow effect for icons */
+.icon-btn:hover svg {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+/* Selection */
+::selection {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* GPU acceleration */
+.video-section,
+.intro-loader,
+.intro-curtain,
+header {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* macOS-specific visual effects optimizations */
+@supports (-webkit-touch-callout: none) {
+  /* Improved backdrop-filter for macOS Safari */
+  [class*="backdrop"],
+  [class*="Backdrop"],
+  .backdrop,
+  .mobileStrip,
+  .mobileBar {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  /* Smooth transitions for hover effects */
+  a, button, [role="button"], .btn {
+    transition: 
+      color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Optimized shadows for macOS (lighter, more subtle) */
+  .card,
+  .modal,
+  .dropdown {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12),
+                0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Optimized blur effects - use transform3d for better performance */
+  [class*="blur"],
+  [class*="Blur"] {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Reduce motion blur on hover for better performance */
+  @media (prefers-reduced-motion: no-preference) {
+    a:hover,
+    button:hover,
+    [role="button"]:hover {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+/* ===== Links ===== */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+/* ===== Images ===== */
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ===== Lists ===== */
+ul, ol {
+  list-style: none;
+}
+
+/* ===== Buttons ===== */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===== Forms ===== */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: border-color var(--transition-fast);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ===== Intro Active State ===== */
+body.intro-active {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reveal site content after intro logo flies up */
+body.intro-active header,
+body.intro-active main {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(2px);
+}
+
+body.intro-revealed header,
+body.intro-revealed main {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 0.6s ease 0.18s,
+    transform 0.7s cubic-bezier(0.23, 0.9, 0.15, 1) 0.18s,
+    filter 0.6s ease 0.18s;
+}
+
+/* Ensure root is visible after intro */
+html.intro-static-done #root {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1 !important;
+}
+
+/* Hide intro static if it's still in DOM */
+#intro-static.intro-static--out {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+/* ===== Footer drawer lock (Home page overlay) ===== */
+body.footer-drawer-lock {
+  /* Intentionally kept non-layout-impacting.
+     (We avoid body scroll locking to prevent header shift.) */
+  overscroll-behavior: none;
+}
+
+/* Scroll lock ╨┤╨╗╤П ╨┤╨╛╨╝╨░╤И╨╜╨╡╨╣ ╤Б╤В╤А╨░╨╜╨╕╤Ж╤Л (SPA ╤Б╨╡╨║╤Ж╨╕╨╕) */
+body.spa-scroll-lock {
+  overflow: hidden !important;
+}
+
+/* Scroll lock ╨┤╨╗╤П ╨▓╤Л╨┐╨░╨┤╨░╤О╤Й╨╡╨│╨╛ ╨╝╨╡╨╜╤О ╨▓ ╤И╨░╨┐╨║╨╡ */
+body.dropdown-scroll-lock {
+  overflow: hidden !important;
+}
+
+/* Scroll lock ╨┤╨╗╤П ╨╝╨╛╨▒╨╕╨╗╤М╨╜╨╛╨│╨╛ ╨╝╨╡╨╜╤О */
+body.mobile-menu-scroll-lock {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* With scrollbar-gutter: stable, we don't need header-specific compensation. */
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ===== Container ===== */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(var(--spacing-md), 2vw, var(--spacing-xl));
+}
+
+/* Container size variants */
+.container-sm {
+  max-width: 640px;
+}
+
+.container-md {
+  max-width: 768px;
+}
+
+.container-lg {
+  max-width: 1024px;
+}
+
+.container-xl {
+  max-width: 1400px;
+}
+
+.container-2xl {
+  max-width: 1536px;
+}
+
+/* Responsive container padding */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    padding: 0 var(--spacing-2xl);
+  }
+}
+
+/* ===== Auto-scaling for very large screens (> 1920px) ===== */
+@media (min-width: 1920px) {
+  html {
+    font-size: clamp(16px, 0.833vw, 18px);
+  }
+
+  .container {
+    max-width: min(1400px, 90vw);
+  }
+}
+
+@media (min-width: 2560px) {
+  html {
+    font-size: clamp(16px, 0.625vw, 20px);
+  }
+
+  .container {
+    max-width: min(1600px, 85vw);
+  }
+}
+
+/* ===== Auto-scaling for very small screens (< 360px) ===== */
+@media (max-width: 360px) {
+  html {
+    font-size: clamp(14px, 4vw, 16px);
+  }
+
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+
+  /* Ensure minimum touch targets on very small screens */
+  button,
+  a[role="button"],
+  [role="button"],
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}
+
+@media (max-width: 320px) {
+  html {
+    font-size: clamp(13px, 4.5vw, 15px);
+  }
+
+  .container {
+    padding: 0 var(--spacing-xs);
+  }
+}
+
+/* ===== macOS Media Queries ===== */
+
+/* Retina display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2),
+       (min-resolution: 192dpi),
+       (min-resolution: 2dppx) {
+  /* Sharper borders and shadows on Retina */
+  .card,
+  .modal,
+  .dropdown,
+  button,
+  input,
+  textarea {
+    border-width: 0.5px;
+  }
+
+  /* Optimize images for Retina */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* High DPI displays (Retina and above) */
+@media (-webkit-min-device-pixel-ratio: 2) {
+  /* Enhanced font rendering for Retina */
+  body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Safari-specific media queries */
+@supports (-webkit-touch-callout: none) {
+  /* macOS desktop Safari optimizations */
+  @media (min-width: 768px) {
+    /* Improve performance on larger screens */
+    .videoSection,
+    .intro-loader {
+      will-change: transform, opacity;
+    }
+  }
+
+  /* Dark mode support for macOS */
+  @media (prefers-color-scheme: dark) {
+    /* Ensure proper contrast in dark mode */
+    body {
+      color-scheme: dark;
+    }
+  }
+
+  /* Light mode support for macOS */
+  @media (prefers-color-scheme: light) {
+    body {
+      color-scheme: light;
+    }
+  }
+}
+
+/* ===== GPU Optimization Classes ===== */
+
+/* ╨Ъ╨а╨Ш╨в╨Ш╨з╨Э╨Ю: ╨Я╤А╨╕╨╜╤Г╨┤╨╕╤В╨╡╨╗╤М╨╜╨╛╨╡ GPU-╤Г╤Б╨║╨╛╤А╨╡╨╜╨╕╨╡ ╨┤╨╗╤П ╨░╨╜╨╕╨╝╨╕╤А╤Г╨╡╨╝╤Л╤Е ╤Н╨╗╨╡╨╝╨╡╨╜╤В╨╛╨▓ */
+.animated,
+[class*="motion"],
+.card,
+.button {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* ╨Ш╨╖╨╛╨╗╨╕╤А╨╛╨▓╨░╤В╤М ╨║╨╛╨╜╤В╨╡╨║╤Б╤В ╨┤╨╗╤П ╨╗╤Г╤З╤И╨╡╨╣ ╨┐╤А╨╛╨╕╨╖╨▓╨╛╨┤╨╕╤В╨╡╨╗╤М╨╜╨╛╤Б╤В╨╕ */
+.video-sections-wrapper,
+.cards-grid {
+  isolation: isolate;
+  contain: layout style paint;
+}
+
+/* ===== Will-change Optimization ===== */
+
+/* ╨Ъ╨а╨Ш╨в╨Ш╨з╨Э╨Ю: will-change ╤В╨╛╨╗╤М╨║╨╛ ╨╜╨░ hover (╨╜╨╡ ╨┐╨╛╤Б╤В╨╛╤П╨╜╨╜╨╛) */
+.card:hover,
+.button:hover {
+  will-change: transform;
+}
+
+.card:not(:hover),
+.button:not(:hover) {
+  will-change: auto; /* ╨Ю╤Б╨▓╨╛╨▒╨╛╨╢╨┤╨░╨╡╨╝ ╤А╨╡╤Б╤Г╤А╤Б╤Л */
+}
+
+/* ===== Spring-like CSS animations ===== */
+
+.spring-in {
+  animation: springIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes springIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) translateZ(0);
+  }
+}
+
+/* Gravity down animation */
+.gravity-down {
+  animation: gravityDown 0.5s cubic-bezier(0.23, 0.9, 0.15, 1) forwards;
+}
+
+@keyframes gravityDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+/* Gravity up animation */
+.gravity-up {
+  animation: gravityUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes gravityUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .animated,
+  [class*="motion"],
+  .spring-in,
+  .gravity-down,
+  .gravity-up {
+    animation: none !important;
+    transition: none !important;
+  }
+}

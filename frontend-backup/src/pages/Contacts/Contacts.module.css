@@ -1,0 +1,310 @@
+﻿/* Contacts Page */
+
+.contactsPage {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-top: var(--header-h);
+  display: block;
+  overflow-x: hidden;
+}
+
+/* When footer drawer is open, fade out the main blocks ("cool" reveal) */
+.footerOpen .pageTitle,
+.footerOpen .heroSection {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.pageTitle,
+.heroSection {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  will-change: opacity, transform;
+}
+
+
+/* Page Title */
+.pageTitle {
+  margin: clamp(28px, 4vh, 42px) auto 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 4vw, 64px);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0.4;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Hero Section */
+.heroSection {
+  width: 100%;
+  max-width: 1400px;
+  margin: clamp(18px, 3vh, 28px) auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 3vw, 48px);
+  position: relative;
+  z-index: 1;
+}
+
+.twoColumnLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  max-width: 1200px;
+  width: 100%;
+  align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+  .twoColumnLayout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Left Block - Contacts */
+.leftBlock {
+  background: rgba(26, 26, 26, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(16px, 2.6vw, 28px);
+  position: relative;
+  min-height: 160px;
+}
+
+.contentWrapper {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contentWrapper > .actions {
+  margin-top: auto;
+}
+
+.blockTitle {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3vw, 48px);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin-bottom: clamp(12px, 2vw, 24px);
+}
+
+.phoneNumber {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.5vw, 36px);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  display: block;
+  margin-bottom: clamp(8px, 1.5vw, 16px);
+  transition: 
+    color var(--transition-medium),
+    opacity var(--transition-medium),
+    transform var(--transition-medium);
+  transform: translateY(0) translateZ(0);
+  backface-visibility: hidden;
+  word-break: break-word;
+}
+
+.phoneNumber:hover {
+  color: var(--color-accent);
+  opacity: 1;
+  transform: translateY(-2px) translateZ(0);
+}
+
+.blockDescription {
+  font-family: var(--font-body);
+  font-size: clamp(11px, 1.2vw, 14px);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: clamp(16px, 3vw, 32px);
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
+}
+
+.socialIcons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(6px, 1vw, 12px);
+  flex-wrap: wrap;
+}
+
+.socialIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(28px, 4vw, 40px);
+  height: clamp(28px, 4vw, 40px);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  transition: 
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    transform var(--transition-fast);
+  transform: translateY(0) translateZ(0);
+  backface-visibility: hidden;
+  text-decoration: none;
+}
+
+.socialIcon:hover {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-3px) translateZ(0);
+}
+
+.socialIcon:active {
+  transform: translateY(-1px) translateZ(0);
+}
+
+.socialIcon img {
+  width: clamp(14px, 2vw, 20px);
+  height: clamp(14px, 2vw, 20px);
+  filter: brightness(0) invert(1) saturate(0) contrast(1.1);
+  opacity: 0.9;
+  transition: opacity var(--transition-fast);
+}
+
+.socialIcon:hover img {
+  opacity: 1;
+}
+
+/* Right Block - Offices */
+.rightBlock {
+  background: rgba(18, 20, 22, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(16px, 2.6vw, 28px);
+  position: relative;
+  min-height: 160px;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 1023px) {
+  .heroSection {
+    margin-top: clamp(160px, 24vh, 260px);
+    padding: clamp(12px, 3vw, 24px);
+  }
+
+  .twoColumnLayout {
+    gap: 1px;
+  }
+}
+
+@media (max-width: 768px) {
+  .contactsPage {
+    overflow-y: auto;
+    overflow-x: hidden;
+    justify-content: flex-start;
+    padding-bottom: 100px;
+  }
+
+  .pageTitle {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin-top: 20px;
+    margin-bottom: 16px;
+    font-size: clamp(20px, 6vw, 28px);
+  }
+
+  .heroSection {
+    margin-top: 0;
+    padding: 12px;
+    flex-direction: column;
+  }
+
+  .leftBlock,
+  .rightBlock {
+    padding: clamp(16px, 4vw, 24px);
+    min-height: auto;
+  }
+
+  .contentWrapper {
+    gap: 12px;
+  }
+
+  .phoneNumber {
+    font-size: clamp(16px, 5vw, 24px);
+    margin-bottom: 8px;
+  }
+
+  .blockDescription {
+    font-size: 10px;
+    margin-bottom: 16px;
+    letter-spacing: 0.08em;
+  }
+
+  .blockTitle {
+    font-size: clamp(16px, 4vw, 24px);
+    margin-bottom: 12px;
+  }
+
+  .actions {
+    gap: 12px;
+  }
+
+  .socialIcons {
+    gap: 8px;
+  }
+
+  .socialIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .socialIcon img {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection {
+    padding: 8px;
+  }
+
+  .leftBlock,
+  .rightBlock {
+    padding: 16px 12px;
+  }
+
+  .phoneNumber {
+    font-size: clamp(14px, 4.5vw, 20px);
+  }
+}

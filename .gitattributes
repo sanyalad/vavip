@@ -1,0 +1,10 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Ensure all files are treated as text and normalized
+* -text eol=lf
+
+# Explicitly ensure tsconfig files are writable
+tsconfig.json -read-only
+tsconfig.node.json -read-only
+*.json -read-only

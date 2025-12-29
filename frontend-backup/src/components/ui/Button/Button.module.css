@@ -1,0 +1,188 @@
+﻿.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font-family: inherit;
+  font-weight: 500;
+  text-transform: uppercase;
+  /* BORK-style: pill-shape */
+  border-radius: 27.5px;
+  letter-spacing: 0.12em;
+  /* BORK-style: ╨╝╨╡╨┤╨╗╨╡╨╜╨╜╤Л╨╡ transitions ╤Б ╤Д╨╕╨╖╨╕╨║╨╛╨╣ */
+  transition: 
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  /* GPU-╤Г╤Б╨║╨╛╤А╨╡╨╜╨╕╨╡ */
+  transform: translateY(0) translateZ(0);
+  backface-visibility: hidden;
+  /* ╨Ю╨┐╤В╨╕╨╝╨╕╨╖╨░╤Ж╨╕╤П: will-change ╤В╨╛╨╗╤М╨║╨╛ ╨┐╤А╨╕ hover */
+  will-change: auto;
+}
+
+.button:hover:not(:disabled) {
+  will-change: transform;
+}
+
+.button:hover:not(:disabled) {
+  /* BORK-style: subtle ╨┐╨╛╨┤╤К╨╡╨╝ ╨┐╤А╨╛╤В╨╕╨▓ ╨│╤А╨░╨▓╨╕╤В╨░╤Ж╨╕╨╕ */
+  transform: translateY(-2px) translateZ(0);
+}
+
+.button:active:not(:disabled) {
+  /* ╨Я╤А╨╕╨╢╨╕╨╝╨░╨╡╤В╤Б╤П ╨▓╨╜╨╕╨╖ (╨│╤А╨░╨▓╨╕╤В╨░╤Ж╨╕╤П) */
+  transform: translateY(0) translateZ(0) scale(0.98);
+  transition-duration: 0.15s;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Variants */
+.primary {
+  /* BORK-style: ╨▒╨╡╨╗╤Л╨╣ ╤Д╨╛╨╜, ╤З╨╡╤А╨╜╤Л╨╣ ╤В╨╡╨║╤Б╤В */
+  background: rgba(255, 255, 255, 0.9);
+  color: #0a0a0a;
+  border: none;
+}
+
+.primary:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.secondary {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-text-muted);
+}
+
+.outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.outline:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+/* Sizes */
+.sm {
+  padding: clamp(var(--spacing-xs), 0.3vw, var(--spacing-xs)) clamp(var(--spacing-sm), 1vw, var(--spacing-md));
+  font-size: clamp(var(--font-size-xs), 0.8vw, var(--font-size-xs));
+  height: clamp(30px, 3.5vw, 32px);
+}
+
+.md {
+  padding: clamp(var(--spacing-xs), 0.5vw, var(--spacing-sm)) clamp(var(--spacing-md), 1.5vw, var(--spacing-lg));
+  font-size: clamp(var(--font-size-xs), 0.9vw, var(--font-size-sm));
+  height: clamp(40px, 4.5vw, 44px);
+}
+
+.lg {
+  padding: clamp(var(--spacing-sm), 0.8vw, var(--spacing-md)) clamp(var(--spacing-lg), 2vw, var(--spacing-xl));
+  font-size: clamp(var(--font-size-sm), 1vw, var(--font-size-base));
+  height: clamp(48px, 5vw, 52px);
+}
+
+/* Full width */
+.fullWidth {
+  width: 100%;
+}
+
+/* Loading state */
+.loading .text {
+  opacity: 0;
+}
+
+.spinner {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner svg {
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Icon */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Ripple effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  margin-left: -50px;
+  margin-top: -50px;
+  background: currentColor;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.primary .ripple {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.secondary .ripple,
+.outline .ripple,
+.ghost .ripple {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Ensure text stays above ripple */
+.text {
+  position: relative;
+  z-index: 1;
+}
+
+
+
+
+
+
+
+
+
