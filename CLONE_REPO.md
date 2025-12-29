@@ -130,19 +130,47 @@ git remote -v
 
 ## Решение проблем
 
-### Ошибка: "Permission denied"
+### Ошибка: "Permission denied" при клонировании в /opt
 
-Если получаете ошибку доступа:
+**Проблема:** Директория `/opt` требует root прав.
+
+**Решение 1: Клонировать в домашнюю директорию (Рекомендуется)**
 
 ```bash
-# Проверьте права на директорию
-ls -la /opt
+# Клонируйте в домашнюю директорию
+cd ~
+git clone https://github.com/sanyalad/vavip.git
+cd vavip
+```
 
-# Если нужно, создайте директорию с правами
+**Решение 2: Создать директорию с правами через sudo**
+
+```bash
+# Создайте директорию с правильными правами
 sudo mkdir -p /opt/vavip
 sudo chown $USER:$USER /opt/vavip
+cd /opt
+git clone https://github.com/sanyalad/vavip.git
+cd vavip
+```
+
+**Решение 3: Использовать скрипт fix-permissions.sh**
+
+```bash
+# Скрипт автоматически создаст директорию с правильными правами
+./fix-permissions.sh /opt/vavip
+cd /opt
+git clone https://github.com/sanyalad/vavip.git
+```
+
+**Решение 4: Клонировать напрямую в целевую директорию**
+
+```bash
+# Создайте директорию и клонируйте туда
+sudo mkdir -p /opt/vavip
+sudo chown $USER:$USER /opt/vavip
+git clone https://github.com/sanyalad/vavip.git /opt/vavip
 cd /opt/vavip
-git clone https://github.com/sanyalad/vavip.git .
 ```
 
 ### Ошибка: "fatal: repository not found"
