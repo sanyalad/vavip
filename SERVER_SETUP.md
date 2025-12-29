@@ -4,6 +4,8 @@
 
 ### 1. Клонирование репозитория
 
+**Способ 1: Через Git (Рекомендуется)**
+
 ```bash
 # Перейдите в нужную директорию (например, /opt)
 cd /opt
@@ -14,6 +16,15 @@ git clone https://github.com/sanyalad/vavip.git
 # Перейдите в директорию проекта
 cd vavip
 ```
+
+**Способ 2: Автоматическое через deploy.sh**
+
+```bash
+# Скрипт сам клонирует и настроит всё
+./deploy.sh https://github.com/sanyalad/vavip.git main /opt/vavip
+```
+
+**Подробнее:** см. [CLONE_REPO.md](CLONE_REPO.md)
 
 ### 2. Обновление репозитория (если уже клонирован)
 
