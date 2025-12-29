@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useLayoutEffect } from 'react'
 import { AuroraBackground } from '@/components/animations/AuroraBackground'
 import { MagneticButton } from '@/components/ui/MagneticButton'
 import { FeedbackForm } from '@/components/FeedbackForm'
@@ -17,6 +17,27 @@ export default function ContactsPage() {
 
   // Footer drawer management
   const { isFooterOpen, closeFooter } = useFooterDrawer()
+  
+  // Scroll to top on mount - ensure page starts at top
+  useLayoutEffect(() => {
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      if (pageRef.current) {
+        pageRef.current.scrollTop = 0
+      }
+    }
+    
+    // Immediate scroll
+    scrollToTop()
+    
+    // Also scroll after a frame to catch any delayed updates
+    requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToTop)
+    })
+  }, [])
+  
   useGSAPPageTransition(pageRef, {
     duration: 0.3,
     ease: 'power1.out',
