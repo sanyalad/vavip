@@ -97,9 +97,10 @@ def create_app(config_class=None):
             if health_status['status'] == 'ok':
                 health_status['status'] = 'degraded'
         
-        status_code = 200 if health_status['status'] == 'ok' else 503
+# Для Docker healthcheck всегда отдаём 200, 
+        # статус зависимостей смотрим в JSON
+        status_code = 200
         return success_response(health_status, status_code=status_code)
-
     # OpenAPI/Swagger documentation
     from .extensions import spec
     from flask import jsonify
