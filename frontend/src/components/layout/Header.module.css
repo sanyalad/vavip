@@ -8,8 +8,8 @@
   max-width: 100vw;
   padding: clamp(4px, 0.5vw, 8px) clamp(20px, 2vw, 30px);
   z-index: var(--z-header);
-  /* Home: fully transparent base */
-  background-color: transparent;
+  /* Home: затемнение с помощью градиента */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
   box-shadow: none;
   /* Hard guarantee: header never slides away (no scroll-based hiding) */
   transform: translate3d(0, 0, 0) !important;
